@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestionale Yellow Jack | Horde RP</title>
-    <!-- Favicon -->
     <link rel="icon" href="logo.ico" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -93,6 +92,9 @@
                 <button id="nav-sales-btn" class="px-4 py-2 rounded-xl bg-amber-500 text-gray-900 font-medium transition hover:bg-amber-400">
                     <i class="fa-solid fa-cash-register mr-2"></i> Vendite
                 </button>
+                <button id="nav-inventory-btn" class="px-4 py-2 rounded-xl bg-gray-700 text-gray-200 font-medium transition hover:bg-gray-600">
+                    <i class="fa-solid fa-boxes-stacked mr-2"></i> Inventario
+                </button>
                 <button id="nav-admin-btn" class="hidden px-4 py-2 rounded-xl bg-gray-700 text-gray-200 font-medium transition hover:bg-gray-600">
                     <i class="fa-solid fa-user-gear mr-2"></i> Gestione
                 </button>
@@ -102,23 +104,21 @@
             </div>
         </nav>
 
-            <!-- Popup Centrato Perfettamente sullo Schermo (Z-index elevato per evitare sovrapposizioni) -->
-    <div id="custom-modal" class="fixed inset-0 bg-gray-950/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4 hidden">
-        <div class="bg-gray-800 border border-gray-700 p-6 rounded-2xl max-w-md w-full shadow-2xl transform transition-all scale-95 opacity-0 duration-200" id="modal-box">
-            <div class="flex items-center space-x-3 text-amber-400 mb-4">
-                <i id="modal-icon" class="fa-solid fa-circle-question text-2xl"></i>
-                <h3 id="modal-title" class="text-lg font-bold tracking-wide">Conferma Operazione</h3>
-            </div>
-            <p id="modal-message" class="text-gray-300 text-sm mb-6">Sei sicuro di voler procedere con questa azione?</p>
-            <div class="flex justify-end space-x-3">
-                <button id="modal-cancel-btn" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-xl font-medium text-sm transition">Annulla</button>
-                <button id="modal-confirm-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition">Conferma</button>
+        <div id="custom-modal" class="fixed inset-0 bg-gray-950/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4 hidden">
+            <div class="bg-gray-800 border border-gray-700 p-6 rounded-2xl max-w-md w-full shadow-2xl transform transition-all scale-95 opacity-0 duration-200" id="modal-box">
+                <div class="flex items-center space-x-3 text-amber-400 mb-4">
+                    <i id="modal-icon" class="fa-solid fa-circle-question text-2xl"></i>
+                    <h3 id="modal-title" class="text-lg font-bold tracking-wide">Conferma Operazione</h3>
+                </div>
+                <p id="modal-message" class="text-gray-300 text-sm mb-6">Sei sicuro di voler procedere con questa azione?</p>
+                <div class="flex justify-end space-x-3">
+                    <button id="modal-cancel-btn" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-xl font-medium text-sm transition">Annulla</button>
+                    <button id="modal-confirm-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition">Conferma</button>
+                </div>
             </div>
         </div>
-    </div>
 
-        <!-- Contenitore notifiche posizionato sotto la navbar -->
-<div id="toast-container" class="fixed top-390 right-10 z-[100] flex flex-col gap-3 max-w-md w-full px-4 sm:px-0"></div>
+        <div id="toast-container" class="fixed top-24 right-10 z-[100] flex flex-col gap-3 max-w-md w-full px-4 sm:px-0"></div>
 
         <main class="flex-1 p-6 max-w-7xl w-full mx-auto">
             
@@ -132,13 +132,13 @@
                             <div>
                                 <label class="block text-xs font-medium text-gray-400 mb-1">Dipendente</label>
                                 <select id="sale-employee" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-amber-500">
-                                    </select>
+                                </select>
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-400 mb-1">Tipo Servizio/Oggetto</label>
                                 <select id="sale-service-select" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-amber-500">
                                     <option value="custom">-- VENDITA LIBERA --</option>
-                                    </select>
+                                </select>
                             </div>
                             <div class="space-y-4">
                                 <div id="custom-name-field">
@@ -187,9 +187,137 @@
                                     </tr>
                                 </thead>
                                 <tbody id="current-sales-table" class="divide-y divide-gray-700 text-sm">
-                                    </tbody>
+                                </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="inventory-section" class="hidden space-y-6">
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    
+                    <div class="space-y-6 xl:col-span-1">
+                        
+                        <div class="bg-gray-800/90 backdrop-blur-sm p-6 rounded-2xl border border-gray-700 shadow-xl">
+                            <h2 class="text-xl font-bold text-amber-400 mb-4 flex items-center">
+                                <i class="fa-solid fa-right-left mr-2"></i> Registra Movimento
+                            </h2>
+                            <form id="inventory-transaction-form" class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-400 mb-1">Dipendente</label>
+                                    <select id="inv-emp-select" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                                        <option value="">-- Seleziona --</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-400 mb-1">Oggetto</label>
+                                    <select id="inv-item-select" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                                        <option value="">-- Seleziona Oggetto --</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-400 mb-1">Azione</label>
+                                        <select id="inv-action" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                                            <option value="preleva">Preleva 📤</option>
+                                            <option value="deposita">Deposita 📥</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-400 mb-1">Quantità</label>
+                                        <input type="number" id="inv-qty" value="1" min="1" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-400 mb-1">Motivo (Opzionale ma consigliato)</label>
+                                    <input type="text" id="inv-reason" placeholder="Es. Lavoro in corso, Reso..." class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                                </div>
+                                <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition shadow-lg shadow-indigo-500/20">
+                                    Conferma Movimento
+                                </button>
+                            </form>
+                        </div>
+
+                        <div id="admin-inventory-controls" class="hidden bg-gray-800/90 backdrop-blur-sm p-6 rounded-2xl border-2 border-amber-500/40 shadow-xl">
+                            <h2 class="text-lg font-bold text-amber-400 mb-4 flex items-center">
+                                <i class="fa-solid fa-plus-circle mr-2"></i> Aggiungi a Deposito (Gestore)
+                            </h2>
+                            <form id="inventory-admin-form" class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-400 mb-1">Nome Oggetto</label>
+                                    <input type="text" id="inv-admin-name" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-400 mb-1">Link Foto (URL)</label>
+                                    <input type="url" id="inv-admin-img" placeholder="https://..." required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-400 mb-1">Quantità Iniziale</label>
+                                        <input type="number" id="inv-admin-qty" value="0" min="0" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-400 mb-1">Deposito</label>
+                                        <select id="inv-admin-stash" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                                            <option value="1">Deposito 1</option>
+                                            <option value="2">Deposito 2</option>
+                                            <option value="3">Deposito 3</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition shadow-lg">
+                                    Crea Oggetto
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6 xl:col-span-2">
+                        
+                        <div class="bg-gray-800/90 backdrop-blur-sm p-6 rounded-2xl border border-gray-700 shadow-xl">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                                <h2 class="text-xl font-bold text-amber-400 flex items-center">
+                                    <i class="fa-solid fa-boxes-stacked mr-2"></i> Giacenza Depositi
+                                </h2>
+                                <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                                    <input type="text" id="inv-search-filter" placeholder="Cerca oggetto..." class="px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500 w-full sm:w-40">
+                                    <select id="inv-stash-filter" class="px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-xl text-sm font-bold text-amber-400 focus:outline-none focus:border-amber-500">
+                                        <option value="all">Tutti i Depositi</option>
+                                        <option value="1">Deposito 1</option>
+                                        <option value="2">Deposito 2</option>
+                                        <option value="3">Deposito 3</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="max-h-[300px] overflow-y-auto pr-2 rounded-xl border border-gray-700/50 p-2 bg-gray-900/50">
+                                <div id="inventory-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                    </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-800/90 backdrop-blur-sm p-6 rounded-2xl border border-gray-700 shadow-xl">
+                            <h2 class="text-lg font-bold text-gray-300 mb-4 flex items-center">
+                                <i class="fa-solid fa-clipboard-list mr-2"></i> Registro Movimenti Recenti
+                            </h2>
+                            <div class="overflow-x-auto max-h-[200px] overflow-y-auto border border-gray-700 rounded-xl">
+                                <table class="w-full text-left text-sm border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-gray-700 text-gray-400 text-xs uppercase tracking-wider sticky top-0 bg-gray-800 z-10">
+                                            <th class="p-3">Data</th>
+                                            <th class="p-3">Dipendente</th>
+                                            <th class="p-3">Azione</th>
+                                            <th class="p-3">Oggetto (Qta)</th>
+                                            <th class="p-3">Motivo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="inventory-logs-table" class="divide-y divide-gray-700 bg-gray-850">
+                                        </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </section>
@@ -208,7 +336,7 @@
                             <label class="block text-xs font-bold text-gray-300 uppercase mb-1 tracking-wider">Filtra Staff</label>
                             <select id="admin-employee-filter" class="w-full px-4 py-2.5 bg-gray-900 border-2 border-amber-500 text-amber-400 font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/50">
                                 <option value="all">📊 MOSTRA TUTTO LO STAFF</option>
-                                </select>
+                            </select>
                         </div>
                     </div>
 
@@ -255,7 +383,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="single-employee-sales-table" class="divide-y divide-gray-800 text-gray-300">
-                                    </tbody>
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -284,7 +412,7 @@
                         <div class="max-h-[140px] overflow-y-auto border border-gray-700 rounded-xl">
                             <table class="w-full text-left text-xs">
                                 <tbody id="catalog-table-body" class="divide-y divide-gray-700 bg-gray-850">
-                                    </tbody>
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -310,7 +438,7 @@
                         <div class="max-h-[140px] overflow-y-auto border border-gray-700 rounded-xl">
                             <table class="w-full text-left text-xs">
                                 <tbody id="employee-table-body" class="divide-y divide-gray-700">
-                                    </tbody>
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -385,16 +513,23 @@
         let localEmployees = {};
         let localSales = {};
         let localSalariesStatus = {}; 
+        let localInventory = {};
+        let localInventoryLogs = [];
 
         // Elementi DOM Principali
         const loginPage = document.getElementById('login-page');
         const mainDashboard = document.getElementById('main-dashboard');
         const loginForm = document.getElementById('login-form');
         const roleBadge = document.getElementById('role-badge');
-        const navAdminBtn = document.getElementById('nav-admin-btn');
+        
+        // Bottoni e Sezioni Navigazione
         const navSalesBtn = document.getElementById('nav-sales-btn');
+        const navInventoryBtn = document.getElementById('nav-inventory-btn');
+        const navAdminBtn = document.getElementById('nav-admin-btn');
         const salesSection = document.getElementById('sales-section');
+        const inventorySection = document.getElementById('inventory-section');
         const adminSection = document.getElementById('admin-section');
+        
         const logoutBtn = document.getElementById('logout-btn');
         const adminEmployeeFilter = document.getElementById('admin-employee-filter');
         const salesEmployeeFilter = document.getElementById('sales-employee-filter');
@@ -547,19 +682,25 @@
 
         function setupUIForRole() {
             roleBadge.textContent = userRole.toUpperCase();
+            const adminInvControls = document.getElementById('admin-inventory-controls');
+
             if (userRole === 'gestore') {
                 roleBadge.className = "px-3 py-1 bg-amber-500/20 text-xs font-semibold rounded-full text-amber-400 border border-amber-500/30";
                 navAdminBtn.classList.remove('hidden');
+                if(adminInvControls) adminInvControls.classList.remove('hidden');
                 if(salesEmployeeFilter) salesEmployeeFilter.classList.remove('hidden');
             } else {
                 roleBadge.className = "px-3 py-1 bg-blue-500/20 text-xs font-semibold rounded-full text-blue-400 border border-blue-500/30";
                 navAdminBtn.classList.add('hidden');
+                if(adminInvControls) adminInvControls.classList.add('hidden');
                 if(salesEmployeeFilter) salesEmployeeFilter.classList.add('hidden');
                 showSection('sales');
             }
         }
 
+        // --- SISTEMA DI NAVIGAZIONE TAB ---
         navSalesBtn.addEventListener('click', () => showSection('sales'));
+        navInventoryBtn.addEventListener('click', () => showSection('inventory'));
         navAdminBtn.addEventListener('click', () => {
             if (userRole === 'gestore') {
                 showSection('admin');
@@ -570,17 +711,25 @@
         });
 
         function showSection(section) {
+            salesSection.classList.add('hidden');
+            inventorySection.classList.add('hidden');
+            adminSection.classList.add('hidden');
+            
+            navSalesBtn.className = "px-4 py-2 rounded-xl bg-gray-700 text-gray-200 font-medium transition hover:bg-gray-600";
+            navInventoryBtn.className = "px-4 py-2 rounded-xl bg-gray-700 text-gray-200 font-medium transition hover:bg-gray-600";
+            navAdminBtn.className = "hidden px-4 py-2 rounded-xl bg-gray-700 text-gray-200 font-medium transition hover:bg-gray-600";
+            
+            if (userRole === 'gestore') navAdminBtn.classList.remove('hidden');
+
             if (section === 'sales') {
                 salesSection.classList.remove('hidden');
-                adminSection.classList.add('hidden');
                 navSalesBtn.className = "px-4 py-2 rounded-xl bg-amber-500 text-gray-900 font-medium transition";
-                navAdminBtn.className = "px-4 py-2 rounded-xl bg-gray-700 text-gray-200 font-medium transition hover:bg-gray-600";
-            } else {
-                if (userRole !== 'gestore') return;
-                salesSection.classList.add('hidden');
+            } else if (section === 'inventory') {
+                inventorySection.classList.remove('hidden');
+                navInventoryBtn.className = "px-4 py-2 rounded-xl bg-amber-500 text-gray-900 font-medium transition";
+            } else if (section === 'admin' && userRole === 'gestore') {
                 adminSection.classList.remove('hidden');
                 navAdminBtn.className = "px-4 py-2 rounded-xl bg-amber-500 text-gray-900 font-medium transition";
-                navSalesBtn.className = "px-4 py-2 rounded-xl bg-gray-700 text-gray-200 font-medium transition hover:bg-gray-600";
             }
         }
 
@@ -588,83 +737,80 @@
         function initDatabaseListeners() {
             db.collection('catalog').onSnapshot(snapshot => {
                 localCatalog = {};
-                snapshot.forEach(doc => {
-                    localCatalog[doc.id] = doc.data();
-                });
+                snapshot.forEach(doc => { localCatalog[doc.id] = doc.data(); });
                 renderCatalog();
                 renderSalesDropdowns();
-            }, error => {
-                showToast("Errore permessi lettore Catalogo Firestore: " + error.message, "error");
-            });
+            }, error => { showToast("Errore lettore Catalogo: " + error.message, "error"); });
 
             db.collection('employees').onSnapshot(snapshot => {
                 localEmployees = {};
-                snapshot.forEach(doc => {
-                    localEmployees[doc.id] = doc.data();
-                });
+                snapshot.forEach(doc => { localEmployees[doc.id] = doc.data(); });
                 renderEmployees();
                 renderSalesDropdowns();
                 renderAdminFilterDropdown();
-            }, error => {
-                showToast("Errore permessi lettore Dipendenti Firestore: " + error.message, "error");
-            });
+            }, error => { showToast("Errore lettore Dipendenti: " + error.message, "error"); });
 
             db.collection('current_salaries_status').onSnapshot(snapshot => {
                 localSalariesStatus = {};
-                snapshot.forEach(doc => {
-                    localSalariesStatus[doc.id] = doc.data().status || 'non_pagato';
-                });
-                if (userRole === 'gestore') {
-                    calculateManagementData();
-                }
+                snapshot.forEach(doc => { localSalariesStatus[doc.id] = doc.data().status || 'non_pagato'; });
+                if (userRole === 'gestore') calculateManagementData();
             });
 
             db.collection('current_sales').onSnapshot(snapshot => {
                 localSales = {};
-                snapshot.forEach(doc => {
-                    localSales[doc.id] = doc.data();
-                });
+                snapshot.forEach(doc => { localSales[doc.id] = doc.data(); });
                 renderSalesTable();
-                if (userRole === 'gestore') {
-                    calculateManagementData();
-                }
-            }, error => {
-                showToast("Errore permessi lettore Vendite Firestore: " + error.message, "error");
-            });
+                if (userRole === 'gestore') calculateManagementData();
+            }, error => { showToast("Errore lettore Vendite: " + error.message, "error"); });
+
+            // INVENTARIO: Oggetti
+            db.collection('inventory_items').onSnapshot(snapshot => {
+                localInventory = {};
+                snapshot.forEach(doc => { localInventory[doc.id] = doc.data(); });
+                renderInventoryGrid();
+                renderInventoryDropdowns();
+            }, error => { showToast("Errore lettore Inventario: " + error.message, "error"); });
+
+            // INVENTARIO: Logs (ultimi 50)
+            db.collection('inventory_logs').orderBy('timestamp', 'desc').limit(50).onSnapshot(snapshot => {
+                localInventoryLogs = [];
+                snapshot.forEach(doc => { localInventoryLogs.push({id: doc.id, ...doc.data()}); });
+                renderInventoryLogs();
+            }, error => { showToast("Errore lettore Log Inventario: " + error.message, "error"); });
 
             if (userRole === 'gestore') {
                 db.collection('archive').onSnapshot(snapshot => {
                     let archiveList = {};
-                    snapshot.forEach(doc => {
-                        archiveList[doc.id] = doc.data();
-                    });
+                    snapshot.forEach(doc => { archiveList[doc.id] = doc.data(); });
                     renderArchive(archiveList);
                 });
             }
         }
 
-// --- PROTEZIONE INTERFACCIA ---
-document.addEventListener('contextmenu', event => event.preventDefault());
+        // // --- PROTEZIONE INTERFACCIA ---
+        // document.addEventListener('contextmenu', event => event.preventDefault());
 
-document.onkeydown = function(e) {
-    if (e.keyCode == 123) return false; 
-    if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false; 
-    if (e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; 
-    if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false; 
-    if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; 
-};
+        // document.onkeydown = function(e) {
+        //     if (e.keyCode == 123) return false; 
+        //     if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false; 
+        //     if (e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; 
+        //     if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false; 
+        //     if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; 
+        // };
 
-setInterval(function() {
-    debugger;
-}, 100);
+        // setInterval(function() {
+        //     debugger;
+        // }, 100);
 
-        // --- GESTIONE INTERATTIVA NUOVA VENDITA ---
+        // --- DROPDOWN CONDIVISI (VENDITA E INVENTARIO) ---
         const saleEmployeeSelect = document.getElementById('sale-employee');
         const saleServiceSelect = document.getElementById('sale-service-select');
         const customNameField = document.getElementById('custom-name-field');
         const saleQuantityInput = document.getElementById('sale-quantity');
         const saleCustomPriceInput = document.getElementById('sale-custom-price');
         const priceLabelText = document.getElementById('price-label-text');
+        
+        const invEmpSelect = document.getElementById('inv-emp-select');
 
         if(saleServiceSelect) {
             saleServiceSelect.addEventListener('change', (e) => {
@@ -678,25 +824,26 @@ setInterval(function() {
                     const item = localCatalog[e.target.value];
                     saleCustomPriceInput.disabled = true;
                     priceLabelText.textContent = "Costo Unitario Preimpostato (€)";
-                    if (item) {
-                        saleCustomPriceInput.value = item.price;
-                    }
+                    if (item) saleCustomPriceInput.value = item.price;
                 }
             });
         }
 
         function renderSalesDropdowns() {
-            if(!saleEmployeeSelect || !saleServiceSelect) return;
-            saleEmployeeSelect.innerHTML = '<option value="">-- Seleziona Operatore --</option>';
+            let empOptions = '<option value="">-- Seleziona Operatore --</option>';
             Object.keys(localEmployees).forEach(key => {
-                saleEmployeeSelect.innerHTML += `<option value="${key}">${localEmployees[key].name} (${localEmployees[key].rank})</option>`;
+                empOptions += `<option value="${key}">${localEmployees[key].name} (${localEmployees[key].rank})</option>`;
             });
+            if(saleEmployeeSelect) saleEmployeeSelect.innerHTML = empOptions;
+            if(invEmpSelect) invEmpSelect.innerHTML = empOptions;
 
-            saleServiceSelect.innerHTML = '<option value="custom">-- VENDITA LIBERA --</option>';
-            Object.keys(localCatalog).forEach(key => {
-                const item = localCatalog[key];
-                saleServiceSelect.innerHTML += `<option value="${key}">${item.name} (${formatValuta(item.price)})</option>`;
-            });
+            if(saleServiceSelect) {
+                saleServiceSelect.innerHTML = '<option value="custom">-- VENDITA LIBERA --</option>';
+                Object.keys(localCatalog).forEach(key => {
+                    const item = localCatalog[key];
+                    saleServiceSelect.innerHTML += `<option value="${key}">${item.name} (${formatValuta(item.price)})</option>`;
+                });
+            }
         }
 
         function renderAdminFilterDropdown() {
@@ -719,17 +866,201 @@ setInterval(function() {
             }
         }
 
-        if(adminEmployeeFilter) {
-            adminEmployeeFilter.addEventListener('change', () => {
-                calculateManagementData();
+        if(adminEmployeeFilter) adminEmployeeFilter.addEventListener('change', calculateManagementData);
+        if(salesEmployeeFilter) salesEmployeeFilter.addEventListener('change', renderSalesTable);
+
+        // --- LOGICA SEZIONE INVENTARIO ---
+        const invSearchFilter = document.getElementById('inv-search-filter');
+        const invStashFilter = document.getElementById('inv-stash-filter');
+        
+        if(invSearchFilter) invSearchFilter.addEventListener('input', renderInventoryGrid);
+        if(invStashFilter) invStashFilter.addEventListener('change', renderInventoryGrid);
+
+        function renderInventoryDropdowns() {
+            const invItemSelect = document.getElementById('inv-item-select');
+            if(!invItemSelect) return;
+            invItemSelect.innerHTML = '<option value="">-- Seleziona Oggetto --</option>';
+            Object.keys(localInventory).forEach(key => {
+                const item = localInventory[key];
+                invItemSelect.innerHTML += `<option value="${key}">${item.name} (Dep. ${item.stash}) - Disp: ${item.quantity}</option>`;
             });
         }
 
-        if(salesEmployeeFilter) {
-            salesEmployeeFilter.addEventListener('change', () => {
-                renderSalesTable();
+        function renderInventoryGrid() {
+            const grid = document.getElementById('inventory-grid');
+            if(!grid) return;
+            grid.innerHTML = '';
+            
+            const searchVal = (invSearchFilter ? invSearchFilter.value.toLowerCase() : '');
+            const stashVal = (invStashFilter ? invStashFilter.value : 'all');
+
+            let items = Object.keys(localInventory).map(k => ({id: k, ...localInventory[k]}));
+            
+            if(stashVal !== 'all') {
+                items = items.filter(i => i.stash === stashVal);
+            }
+            if(searchVal) {
+                items = items.filter(i => i.name.toLowerCase().includes(searchVal));
+            }
+
+            if(items.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-6 text-gray-500 text-sm">Nessun oggetto trovato in inventario.</div>`;
+                return;
+            }
+
+            items.forEach(item => {
+                let adminDeleteBtn = '';
+                if(userRole === 'gestore') {
+                    adminDeleteBtn = `
+                        <button onclick="window.deleteInventoryItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')" class="absolute top-2 right-2 p-1.5 bg-red-600/90 hover:bg-red-700 text-white rounded-lg transition text-xs shadow-lg" title="Rimuovi Oggetto">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>`;
+                }
+
+                grid.innerHTML += `
+                    <div class="relative bg-gray-800 rounded-xl border border-gray-700 overflow-hidden shadow-lg flex flex-col group">
+                        ${adminDeleteBtn}
+                        <div class="h-28 w-full bg-gray-900 flex items-center justify-center p-2">
+                            <img src="${item.imageUrl}" alt="${item.name}" class="max-h-full max-w-full object-contain drop-shadow-md transition transform group-hover:scale-110" onerror="this.src='https://via.placeholder.com/150?text=No+Immagine';">
+                        </div>
+                        <div class="p-3 flex-1 flex flex-col justify-between">
+                            <h4 class="font-bold text-amber-400 text-sm truncate" title="${item.name}">${item.name}</h4>
+                            <div class="mt-2 flex justify-between items-end">
+                                <span class="text-[10px] text-gray-400 font-semibold bg-gray-700 px-2 py-0.5 rounded">Dep. ${item.stash}</span>
+                                <span class="text-emerald-400 font-bold text-sm">Qta: ${item.quantity}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
             });
         }
+
+        function renderInventoryLogs() {
+            const tbody = document.getElementById('inventory-logs-table');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            
+            if(localInventoryLogs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500 text-xs">Nessun movimento registrato.</td></tr>`;
+                return;
+            }
+
+            localInventoryLogs.forEach(log => {
+                const isDeposit = log.action === 'deposita';
+                const actionBadge = isDeposit 
+                    ? `<span class="text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded text-xs font-bold">📥 Deposita</span>` 
+                    : `<span class="text-amber-500 bg-amber-500/10 px-2 py-1 rounded text-xs font-bold">📤 Preleva</span>`;
+                
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-750/50 transition border-b border-gray-700">
+                        <td class="p-3 text-xs text-gray-400">${log.dateString}</td>
+                        <td class="p-3 font-semibold text-gray-200">${log.employeeName}</td>
+                        <td class="p-3">${actionBadge}</td>
+                        <td class="p-3 text-gray-300 text-xs"><b>${log.itemName}</b> (x${log.quantity})</td>
+                        <td class="p-3 text-gray-400 text-xs italic truncate max-w-[150px]" title="${log.reason}">${log.reason || '-'}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- SUBMIT GESTIONE INVENTARIO (GESTORE) ---
+        const invAdminForm = document.getElementById('inventory-admin-form');
+        if(invAdminForm) {
+            invAdminForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('inv-admin-name').value.trim();
+                const imageUrl = document.getElementById('inv-admin-img').value.trim();
+                const quantity = parseInt(document.getElementById('inv-admin-qty').value) || 0;
+                const stash = document.getElementById('inv-admin-stash').value;
+
+                db.collection('inventory_items').add({
+                    name: name,
+                    imageUrl: imageUrl,
+                    quantity: quantity,
+                    stash: stash,
+                    createdAt: Date.now()
+                }).then(() => {
+                    invAdminForm.reset();
+                    showToast("Oggetto creato e inserito nel deposito!", "success");
+                }).catch(err => showToast(err.message, "error"));
+            });
+        }
+
+        window.deleteInventoryItem = function(id, name) {
+            showConfirmModal(
+                "Elimina Oggetto",
+                `Vuoi davvero rimuovere "${name}" dall'inventario definitivamente?`,
+                () => {
+                    db.collection('inventory_items').doc(id).delete()
+                        .then(() => showToast("Oggetto rimosso.", "info"))
+                        .catch(err => showToast(err.message, "error"));
+                },
+                true
+            );
+        };
+
+        // --- SUBMIT MOVIMENTO INVENTARIO (TUTTI) ---
+        const invTransactionForm = document.getElementById('inventory-transaction-form');
+        if(invTransactionForm) {
+            invTransactionForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const empId = document.getElementById('inv-emp-select').value;
+                const itemId = document.getElementById('inv-item-select').value;
+                const action = document.getElementById('inv-action').value;
+                const qty = parseInt(document.getElementById('inv-qty').value) || 1;
+                const reason = document.getElementById('inv-reason').value.trim();
+
+                if(!empId || !itemId) {
+                    showToast("Seleziona dipendente e oggetto.", "warning");
+                    return;
+                }
+
+                const item = localInventory[itemId];
+                if(!item) {
+                    showToast("Oggetto non trovato.", "error");
+                    return;
+                }
+
+                let newQty = item.quantity;
+                if(action === 'preleva') {
+                    if(qty > item.quantity) {
+                        showToast(`Errore: Stai cercando di prelevare ${qty} ma ce ne sono solo ${item.quantity}.`, "error");
+                        return;
+                    }
+                    newQty -= qty;
+                } else {
+                    newQty += qty;
+                }
+
+                const empName = localEmployees[empId] ? localEmployees[empId].name : 'Dipendente';
+
+                // Eseguiamo aggiornamento quantità e log insieme
+                const batch = db.batch();
+                const itemRef = db.collection('inventory_items').doc(itemId);
+                const logRef = db.collection('inventory_logs').doc();
+
+                batch.update(itemRef, { quantity: newQty });
+                batch.set(logRef, {
+                    timestamp: Date.now(),
+                    dateString: new Date().toLocaleString('it-IT'),
+                    employeeId: empId,
+                    employeeName: empName,
+                    itemId: itemId,
+                    itemName: item.name,
+                    action: action,
+                    quantity: qty,
+                    reason: reason
+                });
+
+                batch.commit().then(() => {
+                    invTransactionForm.reset();
+                    document.getElementById('inv-qty').value = 1;
+                    showToast("Movimento registrato con successo!", "success");
+                }).catch(err => showToast("Errore salvataggio movimento: " + err.message, "error"));
+            });
+        }
+
 
         // --- INSERIMENTO OPERATIVO VENDITE ---
         const saleForm = document.getElementById('sale-form');
