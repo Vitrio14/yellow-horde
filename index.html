@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestionale Yellow Jack | Horde RP</title>
-    <link rel="icon" href="logo.ico" type="image/x-icon">
+    <link class="icon" href="logo.ico" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -190,6 +190,24 @@
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+
+                <!-- NUOVA FINESTRA: Archivio Storico Vendite (Sotto, Visibile solo al Gestore) -->
+                <div id="manager-sales-archive-section" class="hidden bg-gray-800/90 backdrop-blur-sm p-6 rounded-2xl border border-gray-700 shadow-xl">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                        <h2 class="text-xl font-bold text-amber-400 flex items-center">
+                            <i class="fa-solid fa-box-archive mr-2"></i> Archivio Storico Dettagliato Vendite
+                        </h2>
+                        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                            <label class="text-xs font-bold text-gray-400 uppercase mr-1">Filtra Archivio Staff:</label>
+                            <select id="archive-window-employee-filter" class="px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-xl text-xs font-bold text-amber-400 focus:outline-none focus:border-amber-500">
+                                <option value="all">📊 Tutti i Dipendenti</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="archive-window-weeks-container" class="space-y-6 max-h-[350px] overflow-y-auto pr-2 bg-gray-900/40 p-3 rounded-xl border border-gray-700/50">
+                        <!-- Popolato dinamicamente diviso per settimane -->
                     </div>
                 </div>
             </section>
@@ -515,6 +533,7 @@
         let localSalariesStatus = {}; 
         let localInventory = {};
         let localInventoryLogs = [];
+        let localArchive = {}; // Struttura ad albero globale per contenere l'archivio storico
 
         // Elementi DOM Principali
         const loginPage = document.getElementById('login-page');
@@ -533,6 +552,7 @@
         const logoutBtn = document.getElementById('logout-btn');
         const adminEmployeeFilter = document.getElementById('admin-employee-filter');
         const salesEmployeeFilter = document.getElementById('sales-employee-filter');
+        const archiveWindowEmployeeFilter = document.getElementById('archive-window-employee-filter');
 
         // Gestione fallimento immagini locale senza errori in console
         const imgLogin = document.getElementById('login-main-logo');
@@ -683,17 +703,20 @@
         function setupUIForRole() {
             roleBadge.textContent = userRole.toUpperCase();
             const adminInvControls = document.getElementById('admin-inventory-controls');
+            const managerSalesArchiveSection = document.getElementById('manager-sales-archive-section');
 
             if (userRole === 'gestore') {
                 roleBadge.className = "px-3 py-1 bg-amber-500/20 text-xs font-semibold rounded-full text-amber-400 border border-amber-500/30";
                 navAdminBtn.classList.remove('hidden');
                 if(adminInvControls) adminInvControls.classList.remove('hidden');
                 if(salesEmployeeFilter) salesEmployeeFilter.classList.remove('hidden');
+                if(managerSalesArchiveSection) managerSalesArchiveSection.classList.remove('hidden');
             } else {
                 roleBadge.className = "px-3 py-1 bg-blue-500/20 text-xs font-semibold rounded-full text-blue-400 border border-blue-500/30";
                 navAdminBtn.classList.add('hidden');
                 if(adminInvControls) adminInvControls.classList.add('hidden');
                 if(salesEmployeeFilter) salesEmployeeFilter.classList.add('hidden');
+                if(managerSalesArchiveSection) managerSalesArchiveSection.classList.add('hidden');
                 showSection('sales');
             }
         }
@@ -780,9 +803,10 @@
 
             if (userRole === 'gestore') {
                 db.collection('archive').onSnapshot(snapshot => {
-                    let archiveList = {};
-                    snapshot.forEach(doc => { archiveList[doc.id] = doc.data(); });
-                    renderArchive(archiveList);
+                    localArchive = {};
+                    snapshot.forEach(doc => { localArchive[doc.id] = doc.data(); });
+                    renderArchive(localArchive);
+                    renderSalesArchiveWindow(localArchive); // Aggiorna anche la nuova finestra sotto Vendite
                 });
             }
         }
@@ -864,10 +888,21 @@
                 });
                 salesEmployeeFilter.value = currentSalesSelection || "all";
             }
+
+            // Popola il dropdown per la nuova finestra dell'archivio storico sotto vendite
+            if(archiveWindowEmployeeFilter) {
+                const currentArchiveSelection = archiveWindowEmployeeFilter.value;
+                archiveWindowEmployeeFilter.innerHTML = '<option value="all">📊 Tutti i Dipendenti</option>';
+                Object.keys(localEmployees).forEach(key => {
+                    archiveWindowEmployeeFilter.innerHTML += `<option value="${key}">👤 ${localEmployees[key].name}</option>`;
+                });
+                archiveWindowEmployeeFilter.value = currentArchiveSelection || "all";
+            }
         }
 
         if(adminEmployeeFilter) adminEmployeeFilter.addEventListener('change', calculateManagementData);
         if(salesEmployeeFilter) salesEmployeeFilter.addEventListener('change', renderSalesTable);
+        if(archiveWindowEmployeeFilter) archiveWindowEmployeeFilter.addEventListener('change', () => renderSalesArchiveWindow(localArchive));
 
         // --- LOGICA SEZIONE INVENTARIO ---
         const invSearchFilter = document.getElementById('inv-search-filter');
@@ -1213,6 +1248,88 @@
                     </tr>
                 `;
             });
+        }
+
+        // --- DINAMICA DI RENDERING: NUOVA FINESTRA DETTAGLIATA ARCHIVIO (PER SETTIMANA E CON FILTRO) ---
+        function renderSalesArchiveWindow(archiveList) {
+            const container = document.getElementById('archive-window-weeks-container');
+            if(!container) return;
+            container.innerHTML = '';
+
+            const filterVal = archiveWindowEmployeeFilter ? archiveWindowEmployeeFilter.value : 'all';
+            const items = Object.keys(archiveList).map(k => ({key: k, ...archiveList[k]}));
+            
+            // Ordina i blocchi di archivio cronologicamente decrescente
+            items.sort((a,b) => b.timestamp - a.timestamp);
+
+            if(items.length === 0) {
+                container.innerHTML = `<div class="text-center py-4 text-gray-500 text-xs">Nessun blocco di archivio registrato nel database.</div>`;
+                return;
+            }
+
+            items.forEach(item => {
+                // Estrae le singole vendite racchiuse all'interno di questo specifico blocco settimanale
+                let weekSalesArray = Object.keys(item.sales || {}).map(sk => item.sales[sk]);
+
+                // Filtra per dipendente se selezionato uno specifico
+                if(filterVal !== 'all') {
+                    weekSalesArray = weekSalesArray.filter(sale => sale.employeeKey === filterVal);
+                }
+
+                // Se non ci sono vendite che corrispondono al filtro in questa settimana, nascondi l'intero blocco settimanale
+                if(weekSalesArray.length === 0) return;
+
+                // Ordina le vendite della settimana per data/ora decrescente
+                weekSalesArray.sort((a, b) => b.timestamp - a.timestamp);
+
+                const weekBlock = document.createElement('div');
+                weekBlock.className = "bg-gray-800/40 p-4 rounded-xl border border-gray-700/70 shadow-inner";
+
+                let tableRowsHtml = '';
+                weekSalesArray.forEach(sale => {
+                    tableRowsHtml += `
+                        <tr class="hover:bg-gray-800/80 transition border-b border-gray-800/50">
+                            <td class="py-2 px-2 text-xs text-gray-400 whitespace-nowrap">${sale.dateString}</td>
+                            <td class="py-2 px-2 text-xs font-bold text-amber-400">${sale.employeeName}</td>
+                            <td class="py-2 px-2 text-xs text-gray-200 font-medium">${sale.serviceName} <span class="text-[10px] text-gray-500 font-bold">x${sale.quantity || 1}</span></td>
+                            <td class="py-2 px-2 text-xs text-emerald-400 font-bold">${formatValuta(sale.totalPrice)}</td>
+                            <td class="py-2 px-2 text-xs text-gray-400">${formatValuta(sale.yellowGain)}</td>
+                            <td class="py-2 px-2 text-xs text-indigo-400 font-bold">${formatValuta(sale.employeeGain)} <span class="text-[9px] text-gray-500">(${sale.appliedPercentage}%)</span></td>
+                        </tr>
+                    `;
+                });
+
+                weekBlock.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-3">
+                        <h3 class="text-xs font-extrabold text-amber-400 uppercase tracking-wider flex items-center">
+                            <i class="fa-solid fa-calendar-check mr-2 text-gray-400"></i> ${item.title}
+                        </h3>
+                        <span class="text-[10px] font-bold px-2 py-0.5 bg-gray-800 rounded-full border border-gray-700 text-gray-400">${weekSalesArray.length} record trovati</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-gray-700 bg-gray-900/40 text-gray-400 text-[10px] uppercase tracking-wider">
+                                    <th class="py-2 px-2">Data e Ora</th>
+                                    <th class="py-2 px-2">Dipendente</th>
+                                    <th class="py-2 px-2">Cosa ha venduto (Qta)</th>
+                                    <th class="py-2 px-2">Totale Lordo</th>
+                                    <th class="py-2 px-2">Guadagno Yellow</th>
+                                    <th class="py-2 px-2">Spett. Staff</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-800/40">
+                                ${tableRowsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                container.appendChild(weekBlock);
+            });
+
+            if(container.children.length === 0) {
+                container.innerHTML = `<div class="text-center py-6 text-gray-500 text-xs italic">Nessun dato di vendita archiviato corrispondente al dipendente selezionato.</div>`;
+            }
         }
 
         // --- GESTIONE LISTINO CATALOGO ---
@@ -1575,6 +1692,7 @@
                 
                 if(adminEmployeeFilter) adminEmployeeFilter.value = "all";
                 if(salesEmployeeFilter) salesEmployeeFilter.value = "all";
+                if(archiveWindowEmployeeFilter) archiveWindowEmployeeFilter.value = "all";
                 showToast("Settimana aziendale archiviata con successo e bilanci azzerati!", "success");
             }).catch(err => showToast(err.message, "error"));
         }
@@ -1640,6 +1758,7 @@
                 
                 if(adminEmployeeFilter) adminEmployeeFilter.value = "all";
                 if(salesEmployeeFilter) salesEmployeeFilter.value = "all";
+                if(archiveWindowEmployeeFilter) archiveWindowEmployeeFilter.value = "all";
                 showToast(`Settimana di ${empName} archiviata singolarmente con successo!`, "success");
             }).catch(err => showToast(err.message, "error"));
         }
