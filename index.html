@@ -29,7 +29,8 @@
         }
         
         /* Forza i contenitori principali a stare sopra lo sfondo */
-        #login-page, #main-dashboard, #toast-container, #custom-modal {
+        /* MODIFICA: Rimosso #custom-modal per permettere a Tailwind di centrarlo correttamente con 'fixed' */
+        #login-page, #main-dashboard, #toast-container {
             position: relative;
             z-index: 10;
         }
@@ -54,6 +55,75 @@
 <body class="bg-gray-900 text-gray-100 min-h-screen font-sans flex flex-col relative overflow-x-hidden">
 
     <div class="bg-banner-overlay"></div>
+
+    <div id="smart-action-modal" class="fixed inset-0 bg-gray-950/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 hidden">
+        <div class="bg-gray-800 border border-gray-700 p-6 rounded-2xl max-w-md w-full shadow-2xl transform transition-all scale-95 opacity-0 duration-200" id="smart-modal-box">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-3">
+                <h3 id="smart-modal-title" class="text-xl font-bold text-amber-400 tracking-wide">Azione Rapida</h3>
+                <button onclick="closeSmartModal()" class="text-gray-400 hover:text-white transition transform hover:scale-110">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="smart-modal-form" class="space-y-4">
+                <input type="hidden" id="smart-modal-type">
+                <input type="hidden" id="smart-modal-item-id">
+                
+                <div id="smart-modal-employee-container">
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Dipendente Selezionato</label>
+                    <select id="smart-modal-employee" required class="w-full px-3 py-2.5 bg-gray-900 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-amber-500 shadow-inner">
+                    </select>
+                </div>
+                
+                <div id="smart-modal-action-container" class="hidden">
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Che operazione vuoi fare?</label>
+                    <select id="smart-modal-action" class="w-full px-3 py-2.5 bg-gray-900 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-amber-500 shadow-inner">
+                        <option value="preleva">Preleva 📤</option>
+                        <option value="deposita">Deposita 📥</option>
+                    </select>
+                </div>
+
+                <div id="smart-modal-custom-name-container" class="hidden">
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Nome Servizio / Oggetto Libero</label>
+                    <input type="text" id="smart-modal-custom-name" placeholder="Esempio: Lavoro fuori listino..." class="w-full px-3 py-2.5 bg-gray-900 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-amber-500 shadow-inner">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">Quantità</label>
+                        <input type="number" id="smart-modal-quantity" value="1" min="1" required class="w-full px-3 py-2.5 bg-gray-900 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-amber-500 shadow-inner text-center font-bold">
+                    </div>
+                    <div id="smart-modal-price-container" class="hidden">
+                        <label id="smart-modal-price-label" class="block text-xs font-medium text-gray-400 mb-1">Costo (€)</label>
+                        <input type="number" step="0.01" id="smart-modal-price" class="w-full px-3 py-2.5 bg-gray-900 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-amber-500 shadow-inner font-bold text-emerald-400">
+                    </div>
+                </div>
+
+                <div id="smart-modal-reason-container" class="hidden">
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Motivo (Opzionale)</label>
+                    <input type="text" id="smart-modal-reason" placeholder="Es. Manutenzione, Rifnornimento..." class="w-full px-3 py-2.5 bg-gray-900 border border-gray-600 rounded-xl text-white focus:outline-none focus:border-amber-500 shadow-inner">
+                </div>
+                
+                <button type="submit" id="smart-modal-submit" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-gray-900 font-extrabold rounded-xl transition transform active:scale-95 shadow-lg mt-2">
+                    Conferma
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="custom-modal" class="fixed inset-0 bg-gray-950/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4 hidden">
+        <div class="bg-gray-800 border border-gray-700 p-6 rounded-2xl max-w-md w-full shadow-2xl transform transition-all scale-95 opacity-0 duration-200" id="modal-box">
+            <div class="flex items-center space-x-3 text-amber-400 mb-4">
+                <i id="modal-icon" class="fa-solid fa-circle-question text-2xl"></i>
+                <h3 id="modal-title" class="text-lg font-bold tracking-wide">Conferma Operazione</h3>
+            </div>
+            <p id="modal-message" class="text-gray-300 text-sm mb-6">Sei sicuro di voler procedere con questa azione?</p>
+            <div class="flex justify-end space-x-3">
+                <button id="modal-cancel-btn" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-xl font-medium text-sm transition">Annulla</button>
+                <button id="modal-confirm-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition">Conferma</button>
+            </div>
+        </div>
+    </div>
 
     <div id="login-page" class="flex flex-1 items-center justify-center px-4 py-12">
         <div class="bg-gray-800/90 backdrop-blur-sm p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700">
@@ -107,29 +177,26 @@
             </div>
         </nav>
 
-        <div id="custom-modal" class="fixed inset-0 bg-gray-950/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4 hidden">
-            <div class="bg-gray-800 border border-gray-700 p-6 rounded-2xl max-w-md w-full shadow-2xl transform transition-all scale-95 opacity-0 duration-200" id="modal-box">
-                <div class="flex items-center space-x-3 text-amber-400 mb-4">
-                    <i id="modal-icon" class="fa-solid fa-circle-question text-2xl"></i>
-                    <h3 id="modal-title" class="text-lg font-bold tracking-wide">Conferma Operazione</h3>
-                </div>
-                <p id="modal-message" class="text-gray-300 text-sm mb-6">Sei sicuro di voler procedere con questa azione?</p>
-                <div class="flex justify-end space-x-3">
-                    <button id="modal-cancel-btn" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-xl font-medium text-sm transition">Annulla</button>
-                    <button id="modal-confirm-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition">Conferma</button>
-                </div>
-            </div>
-        </div>
-
         <div id="toast-container" class="fixed top-3 right-10 z-[100] flex flex-col gap-3 max-w-md w-full px-4 sm:px-0"></div>
 
-        <main class="flex-1 p-6 max-w-7xl w-full mx-auto">
+        <main class="flex-1 p-6 max-w-7xl w-full mx-auto relative z-0">
             
             <section id="sales-section" class="space-y-6">
+                
+<div class="bg-gray-800/90 backdrop-blur-sm p-6 rounded-2xl border border-gray-700 shadow-xl">
+    <h2 class="text-xl font-bold text-amber-400 mb-4 flex items-center">
+        <i class="fa-solid fa-bolt mr-2 text-yellow-300"></i> Azioni Rapide Vendita
+    </h2>
+    <p class="text-gray-400 text-xs mb-4">Clicca su un servizio per aprire il terminale rapido ed effettuare la registrazione.</p>
+    
+    <div id="quick-sales-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 max-h-[280px] overflow-y-auto pr-1">
+    </div>
+</div>
+
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="bg-gray-800/90 backdrop-blur-sm p-6 rounded-2xl border border-gray-700 h-fit shadow-xl">
                         <h2 class="text-xl font-bold text-amber-400 mb-4 flex items-center">
-                            <i class="fa-solid fa-cart-plus mr-2"></i> Nuova Vendita
+                            <i class="fa-solid fa-cart-plus mr-2"></i> Nuova Vendita (Manuale)
                         </h2>
                         <form id="sale-form" class="space-y-4">
                             <div>
@@ -220,7 +287,7 @@
                         
                         <div class="bg-gray-800/90 backdrop-blur-sm p-6 rounded-2xl border border-gray-700 shadow-xl">
                             <h2 class="text-xl font-bold text-amber-400 mb-4 flex items-center">
-                                <i class="fa-solid fa-right-left mr-2"></i> Registra Movimento
+                                <i class="fa-solid fa-right-left mr-2"></i> Registra Movimento (Manuale)
                             </h2>
                             <form id="inventory-transaction-form" class="space-y-4">
                                 <div>
@@ -309,7 +376,7 @@
                                     </select>
                                 </div>
                             </div>
-                            
+                            <p class="text-gray-400 text-xs mb-3 italic">Clicca direttamente sulla card dell'oggetto per gestire un prelievo o deposito veloce.</p>
                             <div class="max-h-[300px] overflow-y-auto pr-2 rounded-xl border border-gray-700/50 p-2 bg-gray-900/50">
                                 <div id="inventory-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                     </div>
@@ -348,7 +415,7 @@
                         
                         <div class="bg-gray-800/90 backdrop-blur-sm p-6 rounded-2xl border border-gray-700 shadow-xl">
                             <h2 class="text-xl font-bold text-amber-400 mb-4 flex items-center">
-                                <i class="fa-solid fa-right-left mr-2"></i> Registra Movimento (Fenici)
+                                <i class="fa-solid fa-right-left mr-2"></i> Registra Movimento (Manuale)
                             </h2>
                             <form id="fenici-transaction-form" class="space-y-4">
                                 <div>
@@ -437,7 +504,7 @@
                                     </select>
                                 </div>
                             </div>
-                            
+                            <p class="text-gray-400 text-xs mb-3 italic">Clicca direttamente sulla card dell'oggetto per gestire un prelievo o deposito veloce.</p>
                             <div class="max-h-[300px] overflow-y-auto pr-2 rounded-xl border border-gray-700/50 p-2 bg-gray-900/50">
                                 <div id="fenici-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                     </div>
@@ -815,6 +882,201 @@
             closeConfirmModal();
         });
 
+
+        // --- LOGICA SMART ACTION MODAL ---
+        window.openSmartModal = function(type, itemId) {
+            const modal = document.getElementById('smart-action-modal');
+            const box = document.getElementById('smart-modal-box');
+            
+            // Popola Dropdown Dipendenti Smart Modal
+            const empSelect = document.getElementById('smart-modal-employee');
+            empSelect.innerHTML = '<option value="">-- Seleziona Operatore --</option>';
+            Object.keys(localEmployees).forEach(key => {
+                empSelect.innerHTML += `<option value="${key}">${localEmployees[key].name} (${localEmployees[key].rank})</option>`;
+            });
+
+            // Reset campi e imposta tipo operazione
+            document.getElementById('smart-modal-form').reset();
+            document.getElementById('smart-modal-type').value = type;
+            document.getElementById('smart-modal-item-id').value = itemId || '';
+            
+            // Nascondi contenitori specifici di default
+            document.getElementById('smart-modal-action-container').classList.add('hidden');
+            document.getElementById('smart-modal-custom-name-container').classList.add('hidden');
+            document.getElementById('smart-modal-price-container').classList.add('hidden');
+            document.getElementById('smart-modal-reason-container').classList.add('hidden');
+            
+            const titleEl = document.getElementById('smart-modal-title');
+            const submitBtn = document.getElementById('smart-modal-submit');
+            const priceInput = document.getElementById('smart-modal-price');
+            const qtyInput = document.getElementById('smart-modal-quantity');
+
+            qtyInput.value = "1";
+
+            if (type === 'inv' || type === 'fen') {
+                const item = type === 'inv' ? localInventory[itemId] : localFenici[itemId];
+                if(!item) return;
+                titleEl.innerHTML = `<i class="fa-solid fa-boxes-stacked mr-2"></i> Gestisci: <span class="text-white">${item.name}</span>`;
+                document.getElementById('smart-modal-action-container').classList.remove('hidden');
+                document.getElementById('smart-modal-reason-container').classList.remove('hidden');
+                submitBtn.textContent = "Conferma Movimento";
+                submitBtn.className = "w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl transition transform active:scale-95 shadow-lg mt-4";
+            } 
+            else if (type === 'sale_catalog') {
+                const item = localCatalog[itemId];
+                if(!item) return;
+                titleEl.innerHTML = `<i class="fa-solid fa-cash-register mr-2"></i> Vendi: <span class="text-white">${item.name}</span>`;
+                document.getElementById('smart-modal-price-container').classList.remove('hidden');
+                document.getElementById('smart-modal-price-label').textContent = "Prezzo Unitario (€)";
+                priceInput.value = item.price;
+                priceInput.disabled = true;
+                submitBtn.textContent = "Registra Vendita";
+                submitBtn.className = "w-full py-3 bg-amber-500 hover:bg-amber-600 text-gray-900 font-extrabold rounded-xl transition transform active:scale-95 shadow-lg mt-4";
+            }
+            else if (type === 'sale_custom') {
+                titleEl.innerHTML = `<i class="fa-solid fa-bolt mr-2"></i> Nuova Vendita Libera`;
+                document.getElementById('smart-modal-custom-name-container').classList.remove('hidden');
+                document.getElementById('smart-modal-price-container').classList.remove('hidden');
+                document.getElementById('smart-modal-price-label').textContent = "Costo Totale (€)";
+                priceInput.value = '';
+                priceInput.disabled = false;
+                submitBtn.textContent = "Registra Vendita";
+                submitBtn.className = "w-full py-3 bg-amber-500 hover:bg-amber-600 text-gray-900 font-extrabold rounded-xl transition transform active:scale-95 shadow-lg mt-4";
+            }
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.remove('scale-95', 'opacity-0');
+                box.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        };
+        
+        window.closeSmartModal = function() {
+            const modal = document.getElementById('smart-action-modal');
+            const box = document.getElementById('smart-modal-box');
+            box.classList.remove('scale-100', 'opacity-100');
+            box.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        };
+
+        // Gestione Submit dello Smart Action Modal
+        document.getElementById('smart-modal-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const type = document.getElementById('smart-modal-type').value;
+            const itemId = document.getElementById('smart-modal-item-id').value;
+            const empId = document.getElementById('smart-modal-employee').value;
+            const qty = parseInt(document.getElementById('smart-modal-quantity').value) || 1;
+            
+            if(!empId) {
+                showToast("Seleziona il tuo nome prima di procedere!", "warning");
+                return;
+            }
+
+            // Logica Inventario / Fenici
+            if (type === 'inv' || type === 'fen') {
+                const action = document.getElementById('smart-modal-action').value;
+                const reason = document.getElementById('smart-modal-reason').value.trim();
+                const collectionItems = type === 'inv' ? 'inventory_items' : 'fenici_items';
+                const collectionLogs = type === 'inv' ? 'inventory_logs' : 'fenici_logs';
+                const localData = type === 'inv' ? localInventory : localFenici;
+                
+                const item = localData[itemId];
+                if(!item) return;
+
+                let newQty = item.quantity;
+                if(action === 'preleva') {
+                    if(qty > item.quantity) {
+                        showToast(`Impossibile prelevare ${qty}, quantità disponibile: ${item.quantity}.`, "error");
+                        return;
+                    }
+                    newQty -= qty;
+                } else {
+                    newQty += qty;
+                }
+
+                const empName = localEmployees[empId] ? localEmployees[empId].name : 'Dipendente';
+
+                const batch = db.batch();
+                const itemRef = db.collection(collectionItems).doc(itemId);
+                const logRef = db.collection(collectionLogs).doc();
+
+                batch.update(itemRef, { quantity: newQty });
+                batch.set(logRef, {
+                    timestamp: Date.now(),
+                    dateString: new Date().toLocaleString('it-IT'),
+                    employeeId: empId,
+                    employeeName: empName,
+                    itemId: itemId,
+                    itemName: item.name,
+                    action: action,
+                    quantity: qty,
+                    reason: reason
+                });
+
+                batch.commit().then(() => {
+                    closeSmartModal();
+                    showToast(`Movimento rapido completato (${type === 'inv' ? 'Inventario' : 'Fenici'})!`, "success");
+                }).catch(err => showToast("Errore di sincronizzazione: " + err.message, "error"));
+
+            // Logica Vendite Smart (Catalogo o Libera)
+            } else if (type === 'sale_catalog' || type === 'sale_custom') {
+                let saleData = {
+                    timestamp: Date.now(),
+                    dateString: new Date().toLocaleString('it-IT'),
+                    employeeKey: empId,
+                    employeeName: localEmployees[empId].name,
+                    employeeRank: localEmployees[empId].rank,
+                    quantity: qty
+                };
+
+                const empPct = localEmployees[empId].customPercentage ? parseFloat(localEmployees[empId].customPercentage) : 40;
+                saleData.appliedPercentage = empPct;
+
+                if (type === 'sale_custom') {
+                    const name = document.getElementById('smart-modal-custom-name').value.trim();
+                    const totalCostInput = parseFloat(document.getElementById('smart-modal-price').value);
+
+                    if (!name || isNaN(totalCostInput)) {
+                        showToast("Compila i campi del servizio e verifica l'importo totale.", "warning");
+                        return;
+                    }
+
+                    const finalTotalPrice = totalCostInput * qty;
+                    const calculatedYellowCost = 0; 
+                    const yellowGain = finalTotalPrice - calculatedYellowCost;
+                    const employeeGain = (yellowGain * empPct) / 100;
+
+                    saleData.serviceName = "[LIBERO] " + name;
+                    saleData.totalPrice = finalTotalPrice;
+                    saleData.yellowCost = calculatedYellowCost;
+                    saleData.yellowGain = yellowGain;
+                    saleData.employeeGain = employeeGain;
+                } else {
+                    const item = localCatalog[itemId];
+                    const finalTotalPrice = item.price * qty;
+                    const finalYellowCost = (item.cost || 0) * qty; 
+                    const yellowGain = finalTotalPrice - finalYellowCost;
+                    const employeeGain = (yellowGain * empPct) / 100;
+
+                    saleData.serviceName = item.name;
+                    saleData.totalPrice = finalTotalPrice;
+                    saleData.yellowCost = finalYellowCost;
+                    saleData.yellowGain = yellowGain;
+                    saleData.employeeGain = employeeGain;
+                }
+
+                db.collection('current_sales').add(saleData)
+                    .then(() => {
+                        closeSmartModal();
+                        showToast("Vendita rapida registrata con successo!", "success");
+                    })
+                    .catch(err => showToast("Errore di scrittura: " + err.message, "error"));
+            }
+        });
+
+
         // --- AUTENTICAZIONE E RUOLI ---
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -935,6 +1197,7 @@
                 snapshot.forEach(doc => { localCatalog[doc.id] = doc.data(); });
                 renderCatalog();
                 renderSalesDropdowns();
+                renderQuickSalesGrid(); // Aggiorna la griglia delle vendite rapide
             }, error => { showToast("Errore lettore Catalogo: " + error.message, "error"); });
 
             db.collection('employees').onSnapshot(snapshot => {
@@ -1154,6 +1417,35 @@
         if(salesEmployeeFilter) salesEmployeeFilter.addEventListener('change', renderSalesTable);
         if(archiveWindowEmployeeFilter) archiveWindowEmployeeFilter.addEventListener('change', () => renderSalesArchiveWindow(localArchive));
 
+        // --- RENDERIZZAZIONE AZIONI RAPIDE VENDITA ---
+        function renderQuickSalesGrid() {
+            const container = document.getElementById('quick-sales-grid');
+            if(!container) return;
+            
+            // Bottone Vendita Libera Semper Presente
+            container.innerHTML = `
+                <div onclick="openSmartModal('sale_custom', null)" class="bg-gray-800/80 border border-gray-600 rounded-xl p-4 cursor-pointer hover:border-amber-500 hover:bg-gray-750 transition-all flex flex-col items-center justify-center text-center group min-h-[110px] shadow-lg hover:shadow-amber-500/20">
+                    <div class="h-10 w-10 bg-amber-500/10 rounded-full flex items-center justify-center mb-2 group-hover:bg-amber-500 transition-colors">
+                        <i class="fa-solid fa-plus text-xl text-amber-500 group-hover:text-gray-900 transition-colors"></i>
+                    </div>
+                    <span class="font-extrabold text-amber-400 text-xs uppercase tracking-wide">Vendita Libera</span>
+                </div>
+            `;
+            
+            // Generazione Bottoni dal Catalogo
+            Object.keys(localCatalog).forEach(key => {
+                const item = localCatalog[key];
+                container.innerHTML += `
+                    <div onclick="openSmartModal('sale_catalog', '${key}')" class="bg-gray-800/80 border border-gray-600 rounded-xl p-4 cursor-pointer hover:border-emerald-500 hover:bg-gray-750 transition-all flex flex-col items-center justify-center text-center group min-h-[110px] shadow-lg hover:shadow-emerald-500/20">
+                        <i class="fa-solid fa-tag text-2xl text-gray-500 mb-2 group-hover:text-emerald-400 transition-colors"></i>
+                        <span class="font-bold text-gray-200 text-sm leading-tight">${item.name}</span>
+                        <span class="text-emerald-400 text-xs font-bold mt-1 bg-emerald-400/10 px-2 py-0.5 rounded">${formatValuta(item.price)}</span>
+                    </div>
+                `;
+            });
+        }
+
+
         // --- LOGICA SEZIONE INVENTARIO ---
         const invSearchFilter = document.getElementById('inv-search-filter');
         const invStashFilter = document.getElementById('inv-stash-filter');
@@ -1196,14 +1488,16 @@
             items.forEach(item => {
                 let adminDeleteBtn = '';
                 if(userRole === 'gestore') {
+                    // STOP PROPAGATION per non aprire il modal se clicco sul cestino!
                     adminDeleteBtn = `
-                        <button onclick="window.deleteInventoryItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')" class="absolute top-2 right-2 p-1.5 bg-red-600/90 hover:bg-red-700 text-white rounded-lg transition text-xs shadow-lg" title="Rimuovi Oggetto">
+                        <button onclick="event.stopPropagation(); window.deleteInventoryItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')" class="absolute top-2 right-2 p-1.5 bg-red-600/90 hover:bg-red-700 text-white rounded-lg transition text-xs shadow-lg z-20" title="Rimuovi Oggetto">
                             <i class="fa-solid fa-trash"></i>
                         </button>`;
                 }
 
+                // Aggiunto onclick per lo Smart Modal
                 grid.innerHTML += `
-                    <div class="relative bg-gray-800 rounded-xl border border-gray-700 overflow-hidden shadow-lg flex flex-col group">
+                    <div onclick="openSmartModal('inv', '${item.id}')" class="relative bg-gray-800 rounded-xl border border-gray-700 overflow-hidden shadow-lg flex flex-col group cursor-pointer hover:border-amber-500 hover:shadow-amber-500/20 transition-all">
                         ${adminDeleteBtn}
                         <div class="h-28 w-full bg-gray-900 flex items-center justify-center p-2">
                             <img src="${item.imageUrl}" alt="${item.name}" class="max-h-full max-w-full object-contain drop-shadow-md transition transform group-hover:scale-110" onerror="this.src='https://via.placeholder.com/150?text=No+Immagine';">
@@ -1284,7 +1578,7 @@
             );
         };
 
-        // --- SUBMIT MOVIMENTO INVENTARIO (TUTTI) ---
+        // --- SUBMIT MOVIMENTO INVENTARIO (VECCHIO FORM MANUALE) ---
         const invTransactionForm = document.getElementById('inventory-transaction-form');
         if(invTransactionForm) {
             invTransactionForm.addEventListener('submit', (e) => {
@@ -1389,14 +1683,16 @@
             items.forEach(item => {
                 let adminDeleteBtn = '';
                 if(userRole === 'gestore') {
+                    // STOP PROPAGATION per non aprire il modal
                     adminDeleteBtn = `
-                        <button onclick="window.deleteFeniciItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')" class="absolute top-2 right-2 p-1.5 bg-red-600/90 hover:bg-red-700 text-white rounded-lg transition text-xs shadow-lg" title="Rimuovi Oggetto">
+                        <button onclick="event.stopPropagation(); window.deleteFeniciItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')" class="absolute top-2 right-2 p-1.5 bg-red-600/90 hover:bg-red-700 text-white rounded-lg transition text-xs shadow-lg z-20" title="Rimuovi Oggetto">
                             <i class="fa-solid fa-trash"></i>
                         </button>`;
                 }
 
+                // Aggiunto onclick per lo Smart Modal (FENICI)
                 grid.innerHTML += `
-                    <div class="relative bg-gray-800 rounded-xl border border-gray-700 overflow-hidden shadow-lg flex flex-col group">
+                    <div onclick="openSmartModal('fen', '${item.id}')" class="relative bg-gray-800 rounded-xl border border-gray-700 overflow-hidden shadow-lg flex flex-col group cursor-pointer hover:border-amber-500 hover:shadow-amber-500/20 transition-all">
                         ${adminDeleteBtn}
                         <div class="h-28 w-full bg-gray-900 flex items-center justify-center p-2">
                             <img src="${item.imageUrl}" alt="${item.name}" class="max-h-full max-w-full object-contain drop-shadow-md transition transform group-hover:scale-110" onerror="this.src='https://via.placeholder.com/150?text=No+Immagine';">
@@ -1477,7 +1773,7 @@
             );
         };
 
-        // --- SUBMIT MOVIMENTO FENICI (TUTTI) ---
+        // --- SUBMIT MOVIMENTO FENICI (VECCHIO FORM MANUALE) ---
         const fenTransactionForm = document.getElementById('fenici-transaction-form');
         if(fenTransactionForm) {
             fenTransactionForm.addEventListener('submit', (e) => {
@@ -1540,7 +1836,7 @@
         }
 
 
-        // --- INSERIMENTO OPERATIVO VENDITE ---
+        // --- INSERIMENTO OPERATIVO VENDITE (VECCHIO FORM MANUALE) ---
         const saleForm = document.getElementById('sale-form');
         if(saleForm) {
             saleForm.addEventListener('submit', (e) => {
